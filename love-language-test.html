@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小學生愛之語測驗</title>
+
+<style>
+body{
+  font-family: "Microsoft JhengHei", sans-serif;
+  background: linear-gradient(135deg,#ffecd2,#fcb69f);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+}
+
+.card{
+  background:white;
+  width:90%;
+  max-width:600px;
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  text-align:center;
+}
+
+h1{
+  margin-bottom:10px;
+  color:#ff6f61;
+}
+
+.progress{
+  margin-bottom:20px;
+  font-size:14px;
+  color:#888;
+}
+
+.question{
+  font-size:22px;
+  margin:30px 0;
+  line-height:1.8;
+}
+
+.option{
+  display:block;
+  width:100%;
+  padding:18px;
+  margin:15px 0;
+  border:none;
+  border-radius:15px;
+  font-size:18px;
+  cursor:pointer;
+  background:#e0f7fa;
+  transition:0.3s;
+}
+
+.option:hover{
+  background:#b2ebf2;
+}
+
+.result{
+  text-align:left;
+  font-size:18px;
+  line-height:1.8;
+}
+.restart{
+  margin-top:20px;
+  background:#ffcc80;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>💛 愛之語小測驗 💛</h1>
+  <div class="progress" id="progress"></div>
+  <div class="question" id="question"></div>
+  <div id="options"></div>
+</div>
+
+<script>
+
+const categories = [
+"肯定的話",
+"精心時刻",
+"接受禮物",
+"服務行動",
+"身體接觸"
+];
+
+// 每題兩個選項（A/B 對應不同愛之語）
+const questions = [
+{q:"當我表現很好時，我比較希望…", a:"有人誇獎我說：你好棒！", aType:0, b:"有人專心陪我聊天一下", bType:1},
+{q:"生日時我比較開心的是…", a:"收到用心準備的小禮物", aType:2, b:"家人幫我準備驚喜活動", bType:3},
+{q:"當我難過時，我希望…", a:"有人抱抱我", aType:4, b:"有人說溫暖鼓勵的話", aType:0},
+{q:"放假時我比較想要…", a:"有人陪我玩一整天", aType:1, b:"有人幫我做我討厭的事", aType:3},
+{q:"我最記得別人…", a:"送我的小東西", aType:2, b:"對我說的好話", aType:0},
+{q:"當我努力完成事情時，我希望…", a:"有人拍拍我肩膀", aType:4, b:"有人稱讚我很棒", aType:0},
+{q:"和朋友相處時，我比較在意…", a:"他願意花時間陪我", aType:1, b:"他會主動幫助我", aType:3},
+{q:"如果爸媽很忙，我比較希望…", a:"抽時間陪我一下", aType:1, b:"幫我準備我需要的東西", aType:3},
+{q:"收到卡片時，我會覺得…", a:"很感動", aType:2, b:"如果裡面有稱讚更開心", aType:0},
+{q:"當我生氣時，我比較希望…", a:"有人抱我一下", aType:4, b:"有人安靜陪著我", aType:1},
+{q:"我覺得愛是…", a:"說出來", aType:0, b:"做出來", aType:3},
+{q:"朋友送我小東西時，我會…", a:"覺得被重視", aType:2, b:"如果他陪我更開心", aType:1},
+{q:"當我考試進步時，我想要…", a:"被誇獎", aType:0, b:"被抱抱", aType:4},
+{q:"我覺得最幸福的是…", a:"全家一起聊天", aType:1, b:"收到驚喜小禮物", aType:2},
+{q:"當我忘記帶東西時，我希望…", a:"有人幫我解決", aType:3, b:"有人說沒關係下次注意", aType:0},
+{q:"我比較喜歡…", a:"擊掌", aType:4, b:"一起做一件事", aType:1},
+{q:"如果朋友主動幫我，我會…", a:"覺得很感動", aType:3, b:"如果再誇我更好", aType:0},
+{q:"我會因為什麼開心很久？", a:"收到禮物", aType:2, b:"有人陪我玩", aType:1},
+{q:"當我表現不好時，我希望…", a:"有人鼓勵我", aType:0, b:"有人抱抱我", aType:4},
+{q:"我最希望家人…", a:"常說愛我", aType:0, b:"常抱抱我", aType:4}
+];
+
+let current = 0;
+let scores = [0,0,0,0,0];
+
+function showQuestion(){
+  document.getElementById("progress").innerText =
+    `第 ${current+1} 題 / 共 ${questions.length} 題`;
+
+  document.getElementById("question").innerText =
+    questions[current].q;
+
+  document.getElementById("options").innerHTML = `
+    <button class="option" onclick="selectOption(${questions[current].aType})">
+      ${questions[current].a}
+    </button>
+    <button class="option" onclick="selectOption(${questions[current].bType})">
+      ${questions[current].b}
+    </button>
+  `;
+}
+
+function selectOption(type){
+  scores[type]++;
+  current++;
+  if(current < questions.length){
+    showQuestion();
+  }else{
+    showResult();
+  }
+}
+
+function showResult(){
+  let maxScore = Math.max(...scores);
+  let topIndex = scores.indexOf(maxScore);
+
+  let resultHTML = "<div class='result'><h2>🎉 測驗結果 🎉</h2>";
+  for(let i=0;i<categories.length;i++){
+    resultHTML += `<p>${categories[i]}：${scores[i]} 分</p>`;
+  }
+  resultHTML += `<h3>💖 你的主要愛之語是：${categories[topIndex]} 💖</h3>`;
+  resultHTML += "<p>沒有對錯，每個人都值得被愛，只是喜歡的方式不同喔！</p>";
+  resultHTML += "<button class='option restart' onclick='restartTest()'>再測一次</button></div>";
+
+  document.querySelector(".card").innerHTML = resultHTML;
+}
+
+function restartTest(){
+  current = 0;
+  scores = [0,0,0,0,0];
+  document.querySelector(".card").innerHTML = `
+  <h1>💛 愛之語小測驗 💛</h1>
+  <div class="progress" id="progress"></div>
+  <div class="question" id="question"></div>
+  <div id="options"></div>
+  `;
+  showQuestion();
+}
+
+showQuestion();
+
+</script>
+
+</body>
+</html>
