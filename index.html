@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>501班點數存摺</title>
+
+<style>
+body{
+    font-family: "Microsoft JhengHei", sans-serif;
+    background: linear-gradient(to bottom, #87CEEB, #f0f8ff);
+    text-align:center;
+    margin:0;
+}
+
+h1{
+    background:#ffcc66;
+    padding:15px;
+    margin:0;
+}
+
+.container{
+    margin-top:40px;
+}
+
+button{
+    padding:10px 20px;
+    margin:5px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+input{
+    padding:8px;
+    font-size:16px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    margin:20px auto;
+    width:300px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+table{
+    margin:auto;
+    border-collapse:collapse;
+    background:white;
+}
+
+th, td{
+    border:1px solid #ccc;
+    padding:8px 12px;
+}
+
+.teacher-btn{background:#ff884d;color:white;}
+.student-btn{background:#4CAF50;color:white;}
+.export-btn{background:#2196F3;color:white;}
+</style>
+</head>
+
+<body>
+
+<h1>🏰 501班點數存摺</h1>
+
+<div class="container" id="loginPage">
+    <h2>請輸入你的編碼</h2>
+    <input type="text" id="loginCode">
+    <br><br>
+    <button class="student-btn" onclick="login()">登入</button>
+    <button class="teacher-btn" onclick="teacherLogin()">老師模式</button>
+</div>
+
+<div id="studentPage" style="display:none;">
+    <div class="card">
+        <h2 id="studentName"></h2>
+        <h3>目前點數：</h3>
+        <h1 id="studentPoints">0</h1>
+        <button onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div id="teacherPage" style="display:none;">
+    <h2>老師模式 - 全班點數</h2>
+    <table id="scoreTable"></table>
+    <br>
+    <button class="export-btn" onclick="exportCSV()">匯出 CSV</button>
+    <button onclick="logout()">登出</button>
+</div>
+
+<script>
+
+// ====== 學生名單 ======
+const students = [
+"01 林駿瑋","02 吳昭佑","03 鄭頎安","04 蔡名尊","05 蔡秉祐",
+"06 吳宥寯","07 陳杰稐","08 楊宥廷","09 林楷芠","10 陳杰豊",
+"11 張躍群","12 吳子明","13 莊喬安","14 張語桐","15 吳映蓉",
+"16 林渟媗","17 林栩荷","18 周芷涵","19 林葙婕","20 林畇竹",
+"21 蕭俞婷","22 邱楷豫","23 張秝榳"
+];
+
+// ====== 初始化資料 ======
+if(!localStorage.getItem("points")){
+    let data = {};
+    students.forEach(s => data[s] = 0);
+    localStorage.setItem("points", JSON.stringify(data));
+}
+
+function getPoints(){
+    return JSON.parse(localStorage.getItem("points"));
+}
+
+function savePoints(data){
+    localStorage.setItem("points", JSON.stringify(data));
+}
+
+// ====== 學生登入 ======
+function login(){
+    let code = document.getElementById("loginCode").value;
+    let found = students.find(s => s.startsWith(code));
+
+    if(found){
+        document.getElementById("loginPage").style.display="none";
+        document.getElementById("studentPage").style.display="block";
+        document.getElementById("studentName").innerText=found;
+        document.getElementById("studentPoints").innerText=getPoints()[found];
+    }else{
+        alert("找不到此編碼");
+    }
+}
+
+// ====== 老師登入 ======
+function teacherLogin(){
+    let pass = prompt("請輸入老師密碼");
+    if(pass==="1234"){   // ← 可自行改密碼
+        document.getElementById("loginPage").style.display="none";
+        document.getElementById("teacherPage").style.display="block";
+        renderTable();
+    }else{
+        alert("密碼錯誤");
+    }
+}
+
+// ====== 顯示老師表格 ======
+function renderTable(){
+    let table = document.getElementById("scoreTable");
+    let data = getPoints();
+
+    let html = "<tr><th>姓名</th><th>點數</th><th>操作</th></tr>";
+
+    for(let name in data){
+        html += `
+        <tr>
+            <td>${name}</td>
+            <td>${data[name]}</td>
+            <td>
+                <button onclick="addPoint('${name}')">+1</button>
+                <button onclick="minusPoint('${name}')">-1</button>
+            </td>
+        </tr>
+        `;
+    }
+
+    table.innerHTML = html;
+}
+
+function addPoint(name){
+    let data = getPoints();
+    data[name]++;
+    savePoints(data);
+    renderTable();
+}
+
+function minusPoint(name){
+    let data = getPoints();
+    if(data[name]>0) data[name]--;
+    savePoints(data);
+    renderTable();
+}
+
+// ====== 匯出 CSV ======
+function exportCSV(){
+    let data = getPoints();
+    let csv = "姓名,點數\n";
+    for(let name in data){
+        csv += `${name},${data[name]}\n`;
+    }
+
+    let blob = new Blob([csv], {type:"text/csv"});
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "501班點數.csv";
+    link.click();
+}
+
+// ====== 登出 ======
+function logout(){
+    location.reload();
+}
+
+</script>
+</body>
+</html>
